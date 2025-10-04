@@ -7,7 +7,6 @@ pipeline {
 
     parameters {
         credentials(name: 'gitCredentialsId', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
-#        credentials(name: 'nexusCredentialsId', defaultValue: 'nexus-cred-id', description: 'Credentials for Nexus')
     }
 
     stages {
