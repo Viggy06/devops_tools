@@ -5,12 +5,17 @@ pipeline {
         maven 'maven'
     }
 
+    parameters {
+        credentials(name: 'gitCredentialsId', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
+#        credentials(name: 'nexusCredentialsId', defaultValue: 'nexus-cred-id', description: 'Credentials for Nexus')
+    }
+
     stages {
         stage('Clone Git') {
             steps {
                 script {
                     git branch: 'main', 
-                        credentialsId: 'march-2025', 
+                        credentialsId: $params.gitCredentialsId
                         url: 'https://github.com/Viggy06/devops_tools.git'
                 }
                 sh 'pwd'  // Print the current directory
