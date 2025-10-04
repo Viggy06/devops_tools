@@ -59,4 +59,13 @@ pipeline {
             }
         }
     }
+	post{
+		success{
+			echo "Build is completed successfully"
+		}
+		failure{
+			echo "Build Failed. Please check logs"
+		}
+	}
 }
+	
