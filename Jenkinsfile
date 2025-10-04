@@ -6,7 +6,7 @@ pipeline {
     }
 
     parameters {
-        credentials(name: 'gitCredentialsId', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
+        credentials(name: 'git-credentials-id', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
     }
 
     stages {
