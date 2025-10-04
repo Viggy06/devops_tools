@@ -14,7 +14,7 @@ pipeline {
             steps {
                 script {
                     git branch: 'main', 
-                        credentialsId: $params.gitCredentialsId
+                        credentialsId: params.gitCredentialsId
                         url: 'https://github.com/Viggy06/devops_tools.git'
                 }
                 sh 'pwd'  // Print the current directory
