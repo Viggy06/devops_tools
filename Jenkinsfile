@@ -6,7 +6,7 @@ pipeline {
     }
 
     parameters {
-        credentials(name: 'git-credentials-id', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
+        string(name: 'git-credentials-id', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
     }
 
     stages {
@@ -14,7 +14,7 @@ pipeline {
             steps {
                 script {
                     git branch: 'main', 
-                        credentialsId: params.gitCredentialsId
+                       credentialsId: params.gitCredentialsId,
                         url: 'https://github.com/Viggy06/devops_tools.git'
                 }
                 sh 'pwd'  // Print the current directory
