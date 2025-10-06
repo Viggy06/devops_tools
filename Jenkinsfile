@@ -5,19 +5,20 @@ pipeline {
         maven 'maven'
     }
 
+
+    parameters {
+        string(name: 'gitCredentialsId', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
+        credentials(name: 'nexusCredentialsId', defaultValue: 'nexus-cred-id', description: 'Credentials for Nexus')
+    }
+    
     environment {
         MAVEN_SETTINGS = "${WORKSPACE}/.maven-settings.xml"
-        GROUP_ID = "com.example"
+        // GROUP_ID = "com.example"
         ARTIFACT_ID = "crud-app"
         VERSION = "1.0-SNAPSHOT" // Change to 1.0 for release
         PACKAGING = "jar"
         NEXUS_SNAPSHOT_URL = "http://nexus:8081/repository/maven-snapshots"
         NEXUS_RELEASE_URL = "http://nexus:8081/repository/maven-releases"
-    }
-
-    parameters {
-        string(name: 'gitCredentialsId', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
-        credentials(name: 'nexus-cred-id', defaultValue: 'nexus-cred-id', description: 'Credentials for Nexus')
     }
 
     stages {
