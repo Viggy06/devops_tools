@@ -53,6 +53,14 @@ pipeline {
             }
         }
 
+        stage('Check Nexus Connection') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'nexus-cred-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+            sh 'curl -u $NEXUS_USER:$NEXUS_PASS -I http://localhost:8081/repository/maven-releases/'
+        }
+    }
+}
+
         stage('Deploy to Nexus') {
             steps {
                 dir('crud-app') {
