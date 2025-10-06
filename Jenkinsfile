@@ -65,7 +65,8 @@ pipeline {
                             script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
                             returnStdout: true
                         ).trim()
-                        echo "Detected version: ${env.VERSION}"
+                        echo "Detected version: ${env.VERSION}" 
+                        //set env.VERSION so it can be used in other stages
                     }
                 }
             }
