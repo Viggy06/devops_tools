@@ -5,18 +5,15 @@ pipeline {
         maven 'maven'
     }
 
-
     parameters {
         string(name: 'gitCredentialsId', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
         credentials(name: 'nexusCredentialsId', defaultValue: 'nexus-cred-id', description: 'Credentials for Nexus')
     }
 
-        
     environment {
         MAVEN_SETTINGS = "${WORKSPACE}/.maven-settings.xml"
         GROUP_ID = "com.example"
         ARTIFACT_ID = "crud-app"
-        // VERSION = "2.0-SNAPSHOT" // Change to 1.0 for release PRESENT IN POM.XML
         PACKAGING = "jar"
         NEXUS_SNAPSHOT_URL = "http://nexus:8081/repository/maven-snapshots"
         NEXUS_RELEASE_URL = "http://nexus:8081/repository/maven-releases"
@@ -59,26 +56,30 @@ pipeline {
             }
         }
 
-        stage('Deploy to Nexus and reading version from POM') {
+        stage('Read Version from POM') {
             steps {
                 dir('crud-app') {
-
                     script {
-                        // Read version from pom.xml
-                        def VERSION = sh(
+                        // Dynamically read version from pom.xml
+                        env.VERSION = sh(
                             script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
                             returnStdout: true
                         ).trim()
-                        
-                        echo "Deploying version: ${VERSION}"
+                        echo "Detected version: ${env.VERSION}"
                     }
+                }
+            }
+        }
 
-                    withCredentials([usernamePassword(credentialsId: 'nexus-cred-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                        script {
-                            def isSnapshot = VERSION.endsWith("-SNAPSHOT")
-                            def repoUrl = isSnapshot ? env.NEXUS_SNAPSHOT_URL : env.NEXUS_RELEASE_URL
-                            def repoId = isSnapshot ? "nexus-snapshots" : "nexus-releases"
+        stage('Deploy to Nexus') {
+            steps {
+                dir('crud-app') {
+                    script {
+                        def isSnapshot = env.VERSION.endsWith("-SNAPSHOT")
+                        def repoUrl = isSnapshot ? env.NEXUS_SNAPSHOT_URL : env.NEXUS_RELEASE_URL
+                        def repoId = isSnapshot ? "nexus-snapshots" : "nexus-releases"
 
+                        withCredentials([usernamePassword(credentialsId: 'nexus-cred-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                             // Generate temporary settings.xml
                             writeFile file: env.MAVEN_SETTINGS, text: """
                             <settings>
@@ -91,7 +92,6 @@ pipeline {
                               </servers>
                             </settings>
                             """
-
                             // Deploy artifact
                             sh "mvn -s $MAVEN_SETTINGS deploy -DskipTests -DaltDeploymentRepository=${repoId}::default::${repoUrl}"
                         }
@@ -104,14 +104,14 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'nexus-cred-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                     script {
-                        def repoUrl = VERSION.endsWith("-SNAPSHOT") ? env.NEXUS_SNAPSHOT_URL : env.NEXUS_RELEASE_URL
-                        def artifactUrl = "${repoUrl}/${GROUP_ID.replace('.', '/')}/${ARTIFACT_ID}/${VERSION}/${ARTIFACT_ID}-${VERSION}.${PACKAGING}"
+                        def repoUrl = env.VERSION.endsWith("-SNAPSHOT") ? env.NEXUS_SNAPSHOT_URL : env.NEXUS_RELEASE_URL
+                        def artifactUrl = "${repoUrl}/${GROUP_ID.replace('.', '/')}/${ARTIFACT_ID}/${env.VERSION}/${ARTIFACT_ID}-${env.VERSION}.${PACKAGING}"
 
                         echo "Downloading artifact from: ${artifactUrl}"
 
                         sh """
                             mkdir -p /tmp/nexus-artifacts
-                            curl -u ${NEXUS_USER}:${NEXUS_PASS} -o /tmp/nexus-artifacts/${ARTIFACT_ID}-${VERSION}.${PACKAGING} ${artifactUrl}
+                            curl -u ${NEXUS_USER}:${NEXUS_PASS} -o /tmp/nexus-artifacts/${ARTIFACT_ID}-${env.VERSION}.${PACKAGING} ${artifactUrl}
                             ls -lh /tmp/nexus-artifacts
                         """
                     }
