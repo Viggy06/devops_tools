@@ -63,11 +63,15 @@ pipeline {
             steps {
                 dir('crud-app') {
 
-                    VERSION = sh(
+                    script {
+                        // Read version from pom.xml
+                        def VERSION = sh(
                             script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
                             returnStdout: true
                         ).trim()
-                    echo "Deploying version: ${VERSION}"
+                        
+                        echo "Deploying version: ${VERSION}"
+                    }
 
                     withCredentials([usernamePassword(credentialsId: 'nexus-cred-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                         script {
