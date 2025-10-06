@@ -11,12 +11,12 @@ pipeline {
         credentials(name: 'nexusCredentialsId', defaultValue: 'nexus-cred-id', description: 'Credentials for Nexus')
     }
 
-    //    VERSION = "1.0-SNAPSHOT" // Change to 1.0 for release PRESENT IN POM.XML
         
     environment {
         MAVEN_SETTINGS = "${WORKSPACE}/.maven-settings.xml"
         GROUP_ID = "com.example"
         ARTIFACT_ID = "crud-app"
+        // VERSION = "2.0-SNAPSHOT" // Change to 1.0 for release PRESENT IN POM.XML
         PACKAGING = "jar"
         NEXUS_SNAPSHOT_URL = "http://nexus:8081/repository/maven-snapshots"
         NEXUS_RELEASE_URL = "http://nexus:8081/repository/maven-releases"
@@ -59,9 +59,16 @@ pipeline {
             }
         }
 
-        stage('Deploy to Nexus') {
+        stage('Deploy to Nexus and reading version from POM') {
             steps {
                 dir('crud-app') {
+
+                    VERSION = sh(
+                            script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout",
+                            returnStdout: true
+                        ).trim()
+                    echo "Deploying version: ${VERSION}"
+
                     withCredentials([usernamePassword(credentialsId: 'nexus-cred-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                         script {
                             def isSnapshot = VERSION.endsWith("-SNAPSHOT")
