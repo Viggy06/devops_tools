@@ -17,7 +17,7 @@ pipeline {
 
     parameters {
         string(name: 'gitCredentialsId', defaultValue: 'march-2025', description: 'Git credentials for GitHub')
-        credentials(name: 'nexusCredentialsId', defaultValue: 'nexus-cred-id', description: 'Credentials for Nexus')
+        credentials(name: 'nexus-cred-id', defaultValue: 'nexus-cred-id', description: 'Credentials for Nexus')
     }
 
     stages {
@@ -51,7 +51,7 @@ pipeline {
 
         stage('Check Nexus Connection') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'nexusCredentialsId', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'nexus-cred-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                     sh 'curl -u $NEXUS_USER:$NEXUS_PASS -I $NEXUS_RELEASE_URL || echo "Check if Nexus is running"'
                 }
             }
@@ -60,7 +60,7 @@ pipeline {
         stage('Deploy to Nexus') {
             steps {
                 dir('crud-app') {
-                    withCredentials([usernamePassword(credentialsId: 'nexusCredentialsId', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: 'nexus-cred-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                         script {
                             def isSnapshot = VERSION.endsWith("-SNAPSHOT")
                             def repoUrl = isSnapshot ? env.NEXUS_SNAPSHOT_URL : env.NEXUS_RELEASE_URL
@@ -89,7 +89,7 @@ pipeline {
 
         stage('Download from Nexus') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'nexusCredentialsId', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'nexus-cred-id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                     script {
                         def repoUrl = VERSION.endsWith("-SNAPSHOT") ? env.NEXUS_SNAPSHOT_URL : env.NEXUS_RELEASE_URL
                         def artifactUrl = "${repoUrl}/${GROUP_ID.replace('.', '/')}/${ARTIFACT_ID}/${VERSION}/${ARTIFACT_ID}-${VERSION}.${PACKAGING}"
